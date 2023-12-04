@@ -10,6 +10,8 @@ With additional configuration, this rule can also suggest an alternative package
 
 If the alternative package is specified, auto-fixing will replace the import statement with the alternative package.
 
+You can use RegExp to match multiple packages.
+
 ## Rule Details
 
 Example configuration:
@@ -25,21 +27,25 @@ Example configuration:
           "alternative": "replacement-package"
         },
         "another-package"
+        "with(?:-regex)?-support"
       ]
     ]
   }
 }
 ```
 
-Examples of **incorrect** code for this rule:
+Examples of **incorrect** code for this rule with options above:
 
 ```js
 import testPackage from "test-package";
 
 import anotherPackage from "another-package";
+
+import withRegexSupport from "with-regex-support";
+import withSupport from "with-support";
 ```
 
-Examples of **correct** code for this rule:
+Examples of **correct** code for this rule with options above:
 
 ```js
 import testPackage from "replacement-package";

@@ -30,6 +30,15 @@ const OPTIONS = [
         target: "react",
         replacement: "preact",
       },
+      {
+        target: "any-other-with(?:regex)",
+        replacement: "any-other-replacement",
+      },
+      "other-with(?:regex)",
+      {
+        target: "with(?:-regex)?-support",
+        replacement: "with-support-replacement",
+      },
     ],
   },
 ];
@@ -74,6 +83,57 @@ ruleTester.run("restrict-import", rule, {
       ],
       options: OPTIONS,
       output: "import { useState } from 'preact'",
+    },
+    {
+      code: "import { useState } from 'any-other-withregex'",
+      errors: [
+        {
+          message:
+            "`any-other-with(?:regex)` is restricted from being used. Replace it with `any-other-replacement`.",
+          type: "ImportDeclaration",
+        },
+      ],
+      options: OPTIONS,
+      output:
+        "import { useState } from 'any-other-replacement'",
+    },
+    {
+      code: "import { useState } from 'other-withregex'",
+      errors: [
+        {
+          message:
+            "`other-with(?:regex)` is restricted from being used.",
+          type: "ImportDeclaration",
+        },
+      ],
+      options: OPTIONS,
+      output: null,
+    },
+    {
+      code: "import { useState } from 'with-regex-support'",
+      errors: [
+        {
+          message:
+            "`with(?:-regex)?-support` is restricted from being used. Replace it with `with-support-replacement`.",
+          type: "ImportDeclaration",
+        },
+      ],
+      options: OPTIONS,
+      output:
+        "import { useState } from 'with-support-replacement'",
+    },
+    {
+      code: "import { useState } from 'with-support'",
+      errors: [
+        {
+          message:
+            "`with(?:-regex)?-support` is restricted from being used. Replace it with `with-support-replacement`.",
+          type: "ImportDeclaration",
+        },
+      ],
+      options: OPTIONS,
+      output:
+        "import { useState } from 'with-support-replacement'",
     },
   ],
 });
