@@ -50,12 +50,31 @@ You can also specify an alternative package to import instead:
       "error",
       [
         {
-          "name": "restricted-package1",
-          "alternative": "replacement-package1"
+          "target": "restricted-package1",
+          "replacement": "replacement-package1"
         },
         {
-          "name": "restricted-package2",
-          "alternative": "replacement-package2"
+          "target": "restricted-package2",
+          "replacement": "replacement-package2"
+        }
+      ]
+    ]
+  }
+}
+```
+
+You can use RegExp for package name:
+
+```json
+{
+  "rules": {
+    "restrict-import/rule-name": [
+      "error",
+      [
+        "with(?:-regex)?-support",
+        {
+          "target": "restricted-.*",
+          "replacement": "replacement-package"
         }
       ]
     ]
