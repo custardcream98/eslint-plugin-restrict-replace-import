@@ -23,23 +23,19 @@ const ruleTester = new RuleTester({
 });
 
 const OPTIONS = [
+  "lodash",
   {
-    restrictedPackages: [
-      "lodash",
-      {
-        target: "react",
-        replacement: "preact",
-      },
-      {
-        target: "any-other-with(?:regex)",
-        replacement: "any-other-replacement",
-      },
-      "other-with(?:regex)",
-      {
-        target: "with(?:-regex)?-support",
-        replacement: "with-support-replacement",
-      },
-    ],
+    target: "react",
+    replacement: "preact",
+  },
+  {
+    target: "any-other-with(?:regex)",
+    replacement: "any-other-replacement",
+  },
+  "other-with(?:regex)",
+  {
+    target: "with(?:-regex)?-support",
+    replacement: "with-support-replacement",
   },
 ];
 
