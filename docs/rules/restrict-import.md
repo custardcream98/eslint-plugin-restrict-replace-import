@@ -23,8 +23,8 @@ Example configuration:
       "error",
       [
         {
-          "name": "test-package",
-          "alternative": "replacement-package"
+          "target": "test-package",
+          "replacement": "replacement-package"
         },
         "another-package"
         "with(?:-regex)?-support"

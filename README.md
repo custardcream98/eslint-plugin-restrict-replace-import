@@ -33,7 +33,7 @@ Then configure the rules you want to use under the rules section.
 ```json
 {
   "rules": {
-    "restrict-import/rule-name": [
+    "restrict-replace-import/restrict-import": [
       "error",
       ["restricted-package1", "restricted-package2"]
     ]
@@ -46,7 +46,7 @@ You can also specify an alternative package to import instead:
 ```json
 {
   "rules": {
-    "restrict-import/rule-name": [
+    "restrict-replace-import/restrict-import": [
       "error",
       [
         {
@@ -68,7 +68,7 @@ You can use RegExp for package name:
 ```json
 {
   "rules": {
-    "restrict-import/rule-name": [
+    "restrict-replace-import/restrict-import": [
       "error",
       [
         "with(?:-regex)?-support",

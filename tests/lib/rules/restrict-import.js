@@ -135,5 +135,17 @@ ruleTester.run("restrict-import", rule, {
       output:
         "import { useState } from 'with-support-replacement'",
     },
+    {
+      code: 'import { ReactNode } from "react";',
+      errors: [
+        {
+          message:
+            "`react` is restricted from being used. Replace it with `preact`.",
+          type: "ImportDeclaration",
+        },
+      ],
+      options: OPTIONS,
+      output: 'import { ReactNode } from "preact";',
+    },
   ],
 });
