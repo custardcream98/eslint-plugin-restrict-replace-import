@@ -1,13 +1,22 @@
 {
-  "name": "eslint-plugin-restrict-import",
-  "version": "0.0.0",
-  "description": "ESLint Plugin for Restricting Import",
+  "name": "eslint-plugin-restrict-replace-import",
+  "version": "1.0.0",
+  "description": "ESLint Plugin for Restricting and Replacing Import",
   "keywords": [
     "eslint",
     "eslintplugin",
-    "eslint-plugin"
+    "eslint-plugin",
+    "import",
+    "restrict"
   ],
   "author": "shiwoo.park",
+  "bugs": {
+    "url": "https://github.com/custardcream98/eslint-plugin-restrict-replace-import/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/custardcream98/eslint-plugin-restrict-replace-import.git"
+  },
   "main": "./lib/index.js",
   "exports": "./lib/index.js",
   "scripts": {

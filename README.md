@@ -1,4 +1,4 @@
-# eslint-plugin-restrict-import
+# eslint-plugin-restrict-replace-import
 
 ESLint Plugin for Restricting and Replacing Import.
 
@@ -12,10 +12,10 @@ You'll first need to install [ESLint](https://eslint.org/):
 npm i eslint --save-dev
 ```
 
-Next, install `eslint-plugin-restrict-import`:
+Next, install `eslint-plugin-restrict-replace-import`:
 
 ```sh
-npm install eslint-plugin-restrict-import --save-dev
+npm install eslint-plugin-restrict-replace-import --save-dev
 ```
 
 ## Usage
