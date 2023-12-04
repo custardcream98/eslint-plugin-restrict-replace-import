@@ -1,6 +1,6 @@
 # eslint-plugin-restrict-import
 
-ESLint Plugin for Restricting Import.
+ESLint Plugin for Restricting and Replacing Import.
 
 Automatically fixable with replacement package!
 
