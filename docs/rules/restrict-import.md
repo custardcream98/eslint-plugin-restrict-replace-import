@@ -1,35 +1,71 @@
-# Prevent the Import of a Specific Package (`restrict-import`)
+# Prevent the Import of a Specific Package (`restrict-import/restrict-import`)
 
-Please describe the origin of the rule here.
+🔧 This rule is automatically fixable by the [`--fix` CLI option](https://eslint.org/docs/latest/user-guide/command-line-interface#--fix).
+
+<!-- end auto-generated rule header -->
+
+This rule aims to prevent the import of a specific package.
+
+With additional configuration, this rule can also suggest an alternative package to import instead.
+
+If the alternative package is specified, auto-fixing will replace the import statement with the alternative package.
 
 ## Rule Details
 
-This rule aims to...
+Example configuration:
+
+```json
+{
+  "rules": {
+    "restrict-import/restrict-import": [
+      "error",
+      [
+        {
+          "name": "test-package",
+          "alternative": "replacement-package"
+        },
+        "another-package"
+      ]
+    ]
+  }
+}
+```
 
 Examples of **incorrect** code for this rule:
 
 ```js
+import testPackage from "test-package";
 
-// fill me in
-
+import anotherPackage from "another-package";
 ```
 
 Examples of **correct** code for this rule:
 
 ```js
+import testPackage from "replacement-package";
 
-// fill me in
-
+import theOtherPackage from "the-other-package";
 ```
 
 ### Options
 
-If there are any options, describe them here. Otherwise, delete this section.
+This rule takes a single argument, an array of strings or objects.
 
-## When Not To Use It
+Each string or object represents a package that should be restricted.
 
-Give a short description of when it would be appropriate to turn off this rule.
+If the array element is a string, it represents the name of the package that should be restricted.
 
-## Further Reading
+If the array element is an object, it represents the name of the package that should be restricted and the alternative package that should be suggested instead.
 
-If there are other links that describe the issue this rule addresses, please include them here in a bulleted list.
+The alternative package is optional.
+
+Scheme:
+
+```ts
+type Restriction =
+  | string
+  | {
+      target: string;
+      replacement?: string;
+    };
+```

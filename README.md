@@ -1,6 +1,8 @@
 # eslint-plugin-restrict-import
 
-ESLint Plugin for Restricting Import
+ESLint Plugin for Restricting Import.
+
+Automatically fixable with replacement package!
 
 ## Installation
 
@@ -22,27 +24,53 @@ Add `restrict-import` to the plugins section of your `.eslintrc` configuration f
 
 ```json
 {
-    "plugins": [
-        "restrict-import"
-    ]
+  "plugins": ["restrict-import"]
 }
 ```
-
 
 Then configure the rules you want to use under the rules section.
 
 ```json
 {
-    "rules": {
-        "restrict-import/rule-name": 2
-    }
+  "rules": {
+    "restrict-import/rule-name": [
+      "error",
+      ["restricted-package1", "restricted-package2"]
+    ]
+  }
+}
+```
+
+You can also specify an alternative package to import instead:
+
+```json
+{
+  "rules": {
+    "restrict-import/rule-name": [
+      "error",
+      [
+        {
+          "name": "restricted-package1",
+          "alternative": "replacement-package1"
+        },
+        {
+          "name": "restricted-package2",
+          "alternative": "replacement-package2"
+        }
+      ]
+    ]
+  }
 }
 ```
 
 ## Rules
 
 <!-- begin auto-generated rules list -->
-TODO: Run eslint-doc-generator to generate the rules list.
+
+🔧 Automatically fixable by the [`--fix` CLI option](https://eslint.org/docs/user-guide/command-line-interface#--fix).
+
+| Name                                             | Description                              | 🔧  |
+| :----------------------------------------------- | :--------------------------------------- | :-- |
+| [restrict-import](docs/rules/restrict-import.md) | Prevent the Import of a Specific Package | 🔧  |
+
 <!-- end auto-generated rules list -->
-
-
