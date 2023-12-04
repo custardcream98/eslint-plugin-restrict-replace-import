@@ -23,20 +23,22 @@ const ruleTester = new RuleTester({
 });
 
 const OPTIONS = [
-  "lodash",
-  {
-    target: "react",
-    replacement: "preact",
-  },
-  {
-    target: "any-other-with(?:regex)",
-    replacement: "any-other-replacement",
-  },
-  "other-with(?:regex)",
-  {
-    target: "with(?:-regex)?-support",
-    replacement: "with-support-replacement",
-  },
+  [
+    "lodash",
+    {
+      target: "react",
+      replacement: "preact",
+    },
+    {
+      target: "any-other-with(?:regex)",
+      replacement: "any-other-replacement",
+    },
+    "other-with(?:regex)",
+    {
+      target: "with(?:-regex)?-support",
+      replacement: "with-support-replacement",
+    },
+  ],
 ];
 
 ruleTester.run("restrict-import", rule, {
@@ -142,6 +144,110 @@ ruleTester.run("restrict-import", rule, {
       ],
       options: OPTIONS,
       output: 'import { ReactNode } from "preact";',
+    },
+  ],
+});
+
+// test schema
+
+ruleTester.run("restrict-import: schema test", rule, {
+  valid: [],
+  invalid: [
+    {
+      code: "import _ from 'underscore'",
+      options: [["underscore"]],
+      errors: [
+        {
+          message:
+            "`underscore` is restricted from being used.",
+          type: "ImportDeclaration",
+        },
+      ],
+      output: null,
+    },
+    {
+      code: "import _ from 'underscore'",
+      options: [
+        [
+          {
+            target: "underscore",
+          },
+        ],
+      ],
+      output: null,
+      errors: [
+        {
+          message:
+            "`underscore` is restricted from being used.",
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    {
+      code: "import _ from 'underscore'",
+      options: [
+        [
+          {
+            target: "underscore",
+            replacement: "lodash",
+          },
+        ],
+      ],
+      output: "import _ from 'lodash'",
+      errors: [
+        {
+          message:
+            "`underscore` is restricted from being used. Replace it with `lodash`.",
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    {
+      code: "import _ from 'underscore'",
+      options: [
+        [
+          {
+            target: "underscore",
+            replacement: "lodash",
+          },
+          {
+            target: "lodash",
+            replacement: "lodash-es",
+          },
+        ],
+      ],
+      output: "import _ from 'lodash'",
+      errors: [
+        {
+          message:
+            "`underscore` is restricted from being used. Replace it with `lodash`.",
+          type: "ImportDeclaration",
+        },
+      ],
+    },
+    {
+      code: "import _ from 'underscore'",
+      options: [
+        [
+          {
+            target: "underscore",
+            replacement: "lodash",
+          },
+          {
+            target: "lodash",
+            replacement: "lodash-es",
+          },
+          "lodash-es",
+        ],
+      ],
+      output: "import _ from 'lodash'",
+      errors: [
+        {
+          message:
+            "`underscore` is restricted from being used. Replace it with `lodash`.",
+          type: "ImportDeclaration",
+        },
+      ],
     },
   ],
 });
