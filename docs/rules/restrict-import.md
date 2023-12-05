@@ -19,7 +19,7 @@ Example configuration:
 ```json
 {
   "rules": {
-    "restrict-import/restrict-import": [
+    "restrict-replace-import/restrict-import": [
       "error",
       [
         {
