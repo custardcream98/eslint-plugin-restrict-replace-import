@@ -20,11 +20,11 @@ npm install eslint-plugin-restrict-replace-import --save-dev
 
 ## Usage
 
-Add `restrict-import` to the plugins section of your `.eslintrc` configuration file. You can omit the `eslint-plugin-` prefix:
+Add `restrict-replace-import` to the plugins section of your `.eslintrc` configuration file. You can omit the `eslint-plugin-` prefix:
 
 ```json
 {
-  "plugins": ["restrict-import"]
+  "plugins": ["restrict-replace-import"]
 }
 ```
 
