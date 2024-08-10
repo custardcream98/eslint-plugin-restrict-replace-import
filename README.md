@@ -82,6 +82,40 @@ You can use RegExp for package name:
 }
 ```
 
+Is it possible as well to perform multiple partial replacements by setting and Object in the `replacement` property:
+
+```json
+{
+  "rules": {
+    "restrict-replace-import/restrict-import": [
+      "error",
+      [
+        {
+          "target": "with-partial-.*",
+          "replacement": {
+            "par(regExp)?tial-": "successfully-",
+            "repla(regExp)?cements": "replaced",
+            "with-": "",
+          }
+        }
+      ]
+    ]
+  }
+}
+```
+Given that rule configuration it will perform the following replacement:
+
+Input:
+```js
+import { useState } from 'with-partial-replacements'
+```
+
+Output:
+```js
+import { useState } from 'successfully-replaced'
+```
+
+
 ## Rules
 
 <!-- begin auto-generated rules list -->

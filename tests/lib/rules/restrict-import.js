@@ -38,6 +38,14 @@ const OPTIONS = [
       target: "with(?:-regex)?-support",
       replacement: "with-support-replacement",
     },
+    {
+      target: "with-partial-replacements",
+      replacement: {
+        "par(regExp)?tial-": "successfully-",
+        "repla(regExp)?cements": "replaced",
+        "with-": "",
+      }
+    },
   ],
 ];
 
@@ -144,6 +152,18 @@ ruleTester.run("restrict-import", rule, {
       ],
       options: OPTIONS,
       output: 'import { ReactNode } from "preact";',
+    },
+    {
+      code: "import { useState } from 'with-partial-replacements'",
+      errors: [
+        {
+          message: "`with-partial-replacements` is restricted from being used.",
+          type: "ImportDeclaration",
+        },
+      ],
+      options: OPTIONS,
+      output:
+        "import { useState } from 'successfully-replaced'",
     },
   ],
 });
