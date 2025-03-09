@@ -257,3 +257,242 @@ ruleTester.run('restrict-import: schema test', rule, {
     },
   ],
 })
+
+ruleTester.run('restrict-import: namedImports test', rule, {
+  valid: [
+    {
+      code: "import { allowedImport } from 'restricted-module'",
+      options: [
+        [
+          {
+            target: 'restricted-module',
+            namedImports: ['restrictedImport'],
+            replacement: 'replacement-module',
+          },
+        ],
+      ],
+    },
+    {
+      code: "import { something, anotherThing } from 'module'",
+      options: [
+        [
+          {
+            target: 'module',
+            namedImports: ['restrictedImport', 'alsoRestricted'],
+            replacement: 'replacement-module',
+          },
+        ],
+      ],
+    },
+  ],
+
+  invalid: [
+    {
+      code: "import { restrictedImport } from 'restricted-module'",
+      errors: [
+        {
+          messageId: 'ImportedNameRestrictionWithReplacement',
+          data: {
+            importedName: 'restrictedImport',
+            name: 'restricted-module',
+            replacement: 'replacement-module',
+          },
+          type: 'ImportDeclaration',
+        },
+      ],
+      options: [
+        [
+          {
+            target: 'restricted-module',
+            namedImports: ['restrictedImport'],
+            replacement: 'replacement-module',
+          },
+        ],
+      ],
+      output: "import { restrictedImport } from 'replacement-module'\n",
+    },
+
+    {
+      code: "import { allowed, restrictedImport } from 'restricted-module'",
+      errors: [
+        {
+          messageId: 'ImportedNameRestrictionWithReplacement',
+          data: {
+            importedName: 'restrictedImport',
+            name: 'restricted-module',
+            replacement: 'replacement-module',
+          },
+          type: 'ImportDeclaration',
+        },
+      ],
+      options: [
+        [
+          {
+            target: 'restricted-module',
+            namedImports: ['restrictedImport'],
+            replacement: 'replacement-module',
+          },
+        ],
+      ],
+      output: "import { restrictedImport } from 'replacement-module'\nimport { allowed } from 'restricted-module'",
+    },
+
+    {
+      code: "import { restrictedImport, alsoRestricted } from 'restricted-module'",
+      errors: [
+        {
+          messageId: 'ImportedNameRestrictionWithReplacement',
+          data: {
+            importedName: 'restrictedImport',
+            name: 'restricted-module',
+            replacement: 'replacement-module',
+          },
+          type: 'ImportDeclaration',
+        },
+        {
+          messageId: 'ImportedNameRestrictionWithReplacement',
+          data: {
+            importedName: 'alsoRestricted',
+            name: 'restricted-module',
+            replacement: 'replacement-module',
+          },
+          type: 'ImportDeclaration',
+        },
+      ],
+      options: [
+        [
+          {
+            target: 'restricted-module',
+            namedImports: ['restrictedImport', 'alsoRestricted'],
+            replacement: 'replacement-module',
+          },
+        ],
+      ],
+      output: "import { restrictedImport, alsoRestricted } from 'replacement-module'\n",
+    },
+
+    {
+      code: "import { existingImport } from 'replacement-module';\nimport { restrictedImport } from 'restricted-module';",
+      errors: [
+        {
+          messageId: 'ImportedNameRestrictionWithReplacement',
+          data: {
+            importedName: 'restrictedImport',
+            name: 'restricted-module',
+            replacement: 'replacement-module',
+          },
+          type: 'ImportDeclaration',
+        },
+      ],
+      options: [
+        [
+          {
+            target: 'restricted-module',
+            namedImports: ['restrictedImport'],
+            replacement: 'replacement-module',
+          },
+        ],
+      ],
+      output: "import { existingImport, restrictedImport } from 'replacement-module';\n",
+    },
+
+    {
+      code: "import defaultExport, { restrictedImport, allowed } from 'restricted-module'",
+      errors: [
+        {
+          messageId: 'ImportedNameRestrictionWithReplacement',
+          data: {
+            importedName: 'restrictedImport',
+            name: 'restricted-module',
+            replacement: 'replacement-module',
+          },
+          type: 'ImportDeclaration',
+        },
+      ],
+      options: [
+        [
+          {
+            target: 'restricted-module',
+            namedImports: ['restrictedImport'],
+            replacement: 'replacement-module',
+          },
+        ],
+      ],
+      output:
+        "import { restrictedImport } from 'replacement-module'\nimport defaultExport, { allowed } from 'restricted-module'",
+    },
+
+    {
+      code: "import { restrictedImport as aliasName } from 'restricted-module'",
+      errors: [
+        {
+          messageId: 'ImportedNameRestrictionWithReplacement',
+          data: {
+            importedName: 'restrictedImport',
+            name: 'restricted-module',
+            replacement: 'replacement-module',
+          },
+          type: 'ImportDeclaration',
+        },
+      ],
+      options: [
+        [
+          {
+            target: 'restricted-module',
+            namedImports: ['restrictedImport'],
+            replacement: 'replacement-module',
+          },
+        ],
+      ],
+      output: "import { restrictedImport as aliasName } from 'replacement-module'\n",
+    },
+
+    {
+      code: "import { restrictedImport } from 'restricted-module'",
+      errors: [
+        {
+          messageId: 'ImportedNameRestriction',
+          data: {
+            importedName: 'restrictedImport',
+            name: 'restricted-module',
+          },
+          type: 'ImportDeclaration',
+        },
+      ],
+      options: [
+        [
+          {
+            target: 'restricted-module',
+            namedImports: ['restrictedImport'],
+          },
+        ],
+      ],
+      output: null,
+    },
+
+    {
+      code: "import { restrictedImport } from 'pattern-module'",
+      errors: [
+        {
+          messageId: 'ImportedNameRestrictionWithReplacement',
+          data: {
+            importedName: 'restrictedImport',
+            name: 'pattern-module',
+            replacement: 'replacement-pattern-module',
+          },
+          type: 'ImportDeclaration',
+        },
+      ],
+      options: [
+        [
+          {
+            target: 'pattern-m(?:odule)',
+            namedImports: ['restrictedImport'],
+            replacement: 'replacement-pattern-module',
+          },
+        ],
+      ],
+      output: "import { restrictedImport } from 'replacement-pattern-module'\n",
+    },
+  ],
+})
