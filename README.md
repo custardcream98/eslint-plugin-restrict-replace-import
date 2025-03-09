@@ -115,6 +115,54 @@ Output:
 import { useState } from 'successfully-replaced'
 ```
 
+You can also restrict specific named imports from a package while allowing others:
+
+```json
+{
+  "rules": {
+    "restrict-replace-import/restrict-import": [
+      "error",
+      [
+        {
+          "target": "restricted-module",
+          "namedImports": ["restrictedImport", "alsoRestricted"],
+          "replacement": "replacement-module"
+        }
+      ]
+    ]
+  }
+}
+```
+
+This configuration will:
+- Allow: `import { allowedImport } from 'restricted-module'`
+- Replace: `import { restrictedImport } from 'restricted-module'` → `import { restrictedImport } from 'replacement-module'`
+
+The rule handles various import scenarios:
+- Named imports with aliases: `import { restrictedImport as aliasName }`
+- Mixed allowed/restricted imports: Will split into separate import statements
+- Default exports with named imports
+- Multiple restricted named imports
+- Merging with existing imports from replacement module
+
+Examples of complex scenarios:
+
+```js
+// Before
+import { existingImport } from 'replacement-module';
+import { restrictedImport } from 'restricted-module';
+
+// After
+import { existingImport, restrictedImport } from 'replacement-module';
+
+// Before
+import defaultExport, { restrictedImport, allowed } from 'restricted-module';
+
+// After
+import { restrictedImport } from 'replacement-module'
+import defaultExport, { allowed } from 'restricted-module'
+```
+
 ## Rules
 
 <!-- begin auto-generated rules list -->

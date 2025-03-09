@@ -4,74 +4,163 @@
 
 <!-- end auto-generated rule header -->
 
-This rule aims to prevent the import of a specific package.
+This rule aims to prevent the import of a specific package and optionally replace it with an alternative package.
 
-With additional configuration, this rule can also suggest an alternative package to import instead.
+## Features
 
-If the alternative package is specified, auto-fixing will replace the import statement with the alternative package.
+- Restrict imports from specific packages
+- Replace restricted imports with alternative packages
+- Support for RegExp patterns in package names
+- Restrict specific named imports while allowing others
+- Partial string replacements using RegExp
+- Automatic merging with existing imports from replacement modules
 
-You can use RegExp to match multiple packages.
+## Options
 
-## Rule Details
+<!-- begin auto-generated rule options list -->
 
-Example configuration:
+| Name           | Description                                                                                                                                                                                                                 | Type     | Required |
+| :------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- | :------- |
+| `namedImports` | The named imports to be restricted. If not provided, all named imports will be restricted.                                                                                                                                  | String[] |          |
+| `replacement`  | The replacement for the import. If a string is provided, it will be used as the replacement for all imports. If an object is provided, the keys will be used as the pattern and the values will be used as the replacement. |          |          |
+| `target`       | The target of the import to be restricted                                                                                                                                                                                   | String   | Yes      |
+
+<!-- end auto-generated rule options list -->
+
+## Usage Examples
+
+### Basic Usage - Restricting Packages
+
+```json
+{
+  "rules": {
+    "restrict-replace-import/restrict-import": ["error", ["lodash"]]
+  }
+}
+```
+
+This will prevent imports from `lodash`:
+```js
+// ❌ Error: `lodash` is restricted from being used
+import _ from 'lodash'
+```
+
+### Replacing with Alternative Package
+
+```json
+{
+  "rules": {
+    "restrict-replace-import/restrict-import": [
+      "error", 
+      [{
+        "target": "react",
+        "replacement": "preact"
+      }]
+    ]
+  }
+}
+```
+
+```js
+// Before
+import { useState } from 'react'
+
+// After
+import { useState } from 'preact'
+```
+
+### Using RegExp for Package Names
 
 ```json
 {
   "rules": {
     "restrict-replace-import/restrict-import": [
       "error",
-      [
-        {
-          "target": "test-package",
-          "replacement": "replacement-package"
-        },
-        "another-package"
-        "with(?:-regex)?-support"
-      ]
+      [{
+        "target": "with(?:-regex)?-support",
+        "replacement": "with-support-replacement"
+      }]
     ]
   }
 }
 ```
 
-Examples of **incorrect** code for this rule with options above:
-
+This will match and replace both:
 ```js
-import testPackage from 'test-package'
-
-import anotherPackage from 'another-package'
-
-import withRegexSupport from 'with-regex-support'
-import withSupport from 'with-support'
+import { something } from 'with-regex-support'  // will be replaced
+import { something } from 'with-support'        // will be replaced
 ```
 
-Examples of **correct** code for this rule with options above:
+### Partial String Replacements
 
-```js
-import testPackage from 'replacement-package'
-
-import theOtherPackage from 'the-other-package'
+```json
+{
+  "rules": {
+    "restrict-replace-import/restrict-import": [
+      "error",
+      [{
+        "target": "with-partial-replacements",
+        "replacement": {
+          "par(regExp)?tial-": "successfully-",
+          "repla(regExp)?cements": "replaced",
+          "with-": ""
+        }
+      }]
+    ]
+  }
+}
 ```
 
-### Options
+```js
+// Before
+import { useState } from 'with-partial-replacements'
 
-This rule takes a single argument, an array of strings or objects.
+// After
+import { useState } from 'successfully-replaced'
+```
 
-Each string or object represents a package that should be restricted.
+### Restricting Specific Named Imports
 
-If the array element is a string, it represents the name of the package that should be restricted.
+```json
+{
+  "rules": {
+    "restrict-replace-import/restrict-import": [
+      "error",
+      [{
+        "target": "restricted-module",
+        "namedImports": ["restrictedImport", "alsoRestricted"],
+        "replacement": "replacement-module"
+      }]
+    ]
+  }
+}
+```
 
-If the array element is an object, it represents the name of the package that should be restricted and the alternative package that should be suggested instead.
+This configuration handles various scenarios:
 
-The alternative package is optional.
+```js
+// ✅ Allowed - import not in restricted list
+import { allowedImport } from 'restricted-module'
 
-Scheme:
+// ❌ Will be replaced
+import { restrictedImport } from 'restricted-module'
+// ↓ Becomes
+import { restrictedImport } from 'replacement-module'
 
-```ts
-type Restriction =
-  | string
-  | {
-      target: string
-      replacement?: string
-    }
+// Mixed imports are split
+import { restrictedImport, allowed } from 'restricted-module'
+// ↓ Becomes
+import { restrictedImport } from 'replacement-module'
+import { allowed } from 'restricted-module'
+
+// Handles aliases
+import { restrictedImport as aliasName } from 'restricted-module'
+// ↓ Becomes
+import { restrictedImport as aliasName } from 'replacement-module'
+
+// Merges with existing imports
+import { existingImport } from 'replacement-module';
+import { restrictedImport } from 'restricted-module';
+// ↓ Becomes
+import { existingImport, restrictedImport } from 'replacement-module';
 ```
