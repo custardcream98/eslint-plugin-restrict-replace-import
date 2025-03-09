@@ -33,10 +33,7 @@ Then configure the rules you want to use under the rules section.
 ```json
 {
   "rules": {
-    "restrict-replace-import/restrict-import": [
-      "error",
-      ["restricted-package1", "restricted-package2"]
-    ]
+    "restrict-replace-import/restrict-import": ["error", ["restricted-package1", "restricted-package2"]]
   }
 }
 ```
@@ -95,7 +92,7 @@ Is it possible as well to perform multiple partial replacements by setting and O
           "replacement": {
             "par(regExp)?tial-": "successfully-",
             "repla(regExp)?cements": "replaced",
-            "with-": "",
+            "with-": ""
           }
         }
       ]
@@ -103,18 +100,20 @@ Is it possible as well to perform multiple partial replacements by setting and O
   }
 }
 ```
+
 Given that rule configuration it will perform the following replacement:
 
 Input:
+
 ```js
 import { useState } from 'with-partial-replacements'
 ```
 
 Output:
+
 ```js
 import { useState } from 'successfully-replaced'
 ```
-
 
 ## Rules
 
@@ -122,8 +121,8 @@ import { useState } from 'successfully-replaced'
 
 🔧 Automatically fixable by the [`--fix` CLI option](https://eslint.org/docs/user-guide/command-line-interface#--fix).
 
-| Name                                             | Description                              | 🔧  |
-| :----------------------------------------------- | :--------------------------------------- | :-- |
-| [restrict-import](docs/rules/restrict-import.md) | Prevent the Import of a Specific Package | 🔧  |
+| Name                                             | Description                              | 🔧 |
+| :----------------------------------------------- | :--------------------------------------- | :- |
+| [restrict-import](docs/rules/restrict-import.md) | Prevent the Import of a Specific Package | 🔧 |
 
 <!-- end auto-generated rules list -->

@@ -1,3 +1,9 @@
 node_modules
 
 tests/**/*
+
+.prettierignore
+
+.prettierrc
+
+.eslint.config.mjs

@@ -2,54 +2,54 @@
  * @fileoverview Prevent the Import of a Specific Package
  * @author shiwoo.park
  */
-"use strict";
+'use strict'
 
 //------------------------------------------------------------------------------
 // Requirements
 //------------------------------------------------------------------------------
 
-const rule = require("../../../lib/rules/restrict-import"),
-  RuleTester = require("eslint").RuleTester;
+const rule = require('../../../lib/rules/restrict-import'),
+  RuleTester = require('eslint').RuleTester
 
 //------------------------------------------------------------------------------
 // Tests
 //------------------------------------------------------------------------------
 
 const ruleTester = new RuleTester({
-  parserOptions: {
-    ecmaVersion: 2015,
-    sourceType: "module",
+  languageOptions: {
+    ecmaVersion: 2022,
+    sourceType: 'module',
   },
-});
+})
 
 const OPTIONS = [
   [
-    "lodash",
+    'lodash',
     {
-      target: "react",
-      replacement: "preact",
+      target: 'react',
+      replacement: 'preact',
     },
     {
-      target: "any-other-with(?:regex)",
-      replacement: "any-other-replacement",
+      target: 'any-other-with(?:regex)',
+      replacement: 'any-other-replacement',
     },
-    "other-with(?:regex)",
+    'other-with(?:regex)',
     {
-      target: "with(?:-regex)?-support",
-      replacement: "with-support-replacement",
+      target: 'with(?:-regex)?-support',
+      replacement: 'with-support-replacement',
     },
     {
-      target: "with-partial-replacements",
+      target: 'with-partial-replacements',
       replacement: {
-        "par(regExp)?tial-": "successfully-",
-        "repla(regExp)?cements": "replaced",
-        "with-": "",
-      }
+        'par(regExp)?tial-': 'successfully-',
+        'repla(regExp)?cements': 'replaced',
+        'with-': '',
+      },
     },
   ],
-];
+]
 
-ruleTester.run("restrict-import", rule, {
+ruleTester.run('restrict-import', rule, {
   valid: [
     {
       code: "import _ from 'underscore'",
@@ -70,9 +70,8 @@ ruleTester.run("restrict-import", rule, {
       code: "import _ from 'lodash'",
       errors: [
         {
-          message:
-            "`lodash` is restricted from being used.",
-          type: "ImportDeclaration",
+          message: '`lodash` is restricted from being used.',
+          type: 'ImportDeclaration',
         },
       ],
       options: OPTIONS,
@@ -82,9 +81,8 @@ ruleTester.run("restrict-import", rule, {
       code: "import { useState } from 'react'",
       errors: [
         {
-          message:
-            "`react` is restricted from being used. Replace it with `preact`.",
-          type: "ImportDeclaration",
+          message: '`react` is restricted from being used. Replace it with `preact`.',
+          type: 'ImportDeclaration',
         },
       ],
       options: OPTIONS,
@@ -94,22 +92,19 @@ ruleTester.run("restrict-import", rule, {
       code: "import { useState } from 'any-other-withregex'",
       errors: [
         {
-          message:
-            "`any-other-with(?:regex)` is restricted from being used. Replace it with `any-other-replacement`.",
-          type: "ImportDeclaration",
+          message: '`any-other-with(?:regex)` is restricted from being used. Replace it with `any-other-replacement`.',
+          type: 'ImportDeclaration',
         },
       ],
       options: OPTIONS,
-      output:
-        "import { useState } from 'any-other-replacement'",
+      output: "import { useState } from 'any-other-replacement'",
     },
     {
       code: "import { useState } from 'other-withregex'",
       errors: [
         {
-          message:
-            "`other-with(?:regex)` is restricted from being used.",
-          type: "ImportDeclaration",
+          message: '`other-with(?:regex)` is restricted from being used.',
+          type: 'ImportDeclaration',
         },
       ],
       options: OPTIONS,
@@ -120,34 +115,31 @@ ruleTester.run("restrict-import", rule, {
       errors: [
         {
           message:
-            "`with(?:-regex)?-support` is restricted from being used. Replace it with `with-support-replacement`.",
-          type: "ImportDeclaration",
+            '`with(?:-regex)?-support` is restricted from being used. Replace it with `with-support-replacement`.',
+          type: 'ImportDeclaration',
         },
       ],
       options: OPTIONS,
-      output:
-        "import { useState } from 'with-support-replacement'",
+      output: "import { useState } from 'with-support-replacement'",
     },
     {
       code: "import { useState } from 'with-support'",
       errors: [
         {
           message:
-            "`with(?:-regex)?-support` is restricted from being used. Replace it with `with-support-replacement`.",
-          type: "ImportDeclaration",
+            '`with(?:-regex)?-support` is restricted from being used. Replace it with `with-support-replacement`.',
+          type: 'ImportDeclaration',
         },
       ],
       options: OPTIONS,
-      output:
-        "import { useState } from 'with-support-replacement'",
+      output: "import { useState } from 'with-support-replacement'",
     },
     {
       code: 'import { ReactNode } from "react";',
       errors: [
         {
-          message:
-            "`react` is restricted from being used. Replace it with `preact`.",
-          type: "ImportDeclaration",
+          message: '`react` is restricted from being used. Replace it with `preact`.',
+          type: 'ImportDeclaration',
         },
       ],
       options: OPTIONS,
@@ -157,30 +149,28 @@ ruleTester.run("restrict-import", rule, {
       code: "import { useState } from 'with-partial-replacements'",
       errors: [
         {
-          message: "`with-partial-replacements` is restricted from being used.",
-          type: "ImportDeclaration",
+          message: '`with-partial-replacements` is restricted from being used.',
+          type: 'ImportDeclaration',
         },
       ],
       options: OPTIONS,
-      output:
-        "import { useState } from 'successfully-replaced'",
+      output: "import { useState } from 'successfully-replaced'",
     },
   ],
-});
+})
 
 // test schema
 
-ruleTester.run("restrict-import: schema test", rule, {
+ruleTester.run('restrict-import: schema test', rule, {
   valid: [],
   invalid: [
     {
       code: "import _ from 'underscore'",
-      options: [["underscore"]],
+      options: [['underscore']],
       errors: [
         {
-          message:
-            "`underscore` is restricted from being used.",
-          type: "ImportDeclaration",
+          message: '`underscore` is restricted from being used.',
+          type: 'ImportDeclaration',
         },
       ],
       output: null,
@@ -190,16 +180,15 @@ ruleTester.run("restrict-import: schema test", rule, {
       options: [
         [
           {
-            target: "underscore",
+            target: 'underscore',
           },
         ],
       ],
       output: null,
       errors: [
         {
-          message:
-            "`underscore` is restricted from being used.",
-          type: "ImportDeclaration",
+          message: '`underscore` is restricted from being used.',
+          type: 'ImportDeclaration',
         },
       ],
     },
@@ -208,17 +197,16 @@ ruleTester.run("restrict-import: schema test", rule, {
       options: [
         [
           {
-            target: "underscore",
-            replacement: "lodash",
+            target: 'underscore',
+            replacement: 'lodash',
           },
         ],
       ],
       output: "import _ from 'lodash'",
       errors: [
         {
-          message:
-            "`underscore` is restricted from being used. Replace it with `lodash`.",
-          type: "ImportDeclaration",
+          message: '`underscore` is restricted from being used. Replace it with `lodash`.',
+          type: 'ImportDeclaration',
         },
       ],
     },
@@ -227,21 +215,20 @@ ruleTester.run("restrict-import: schema test", rule, {
       options: [
         [
           {
-            target: "underscore",
-            replacement: "lodash",
+            target: 'underscore',
+            replacement: 'lodash',
           },
           {
-            target: "lodash",
-            replacement: "lodash-es",
+            target: 'lodash',
+            replacement: 'lodash-es',
           },
         ],
       ],
       output: "import _ from 'lodash'",
       errors: [
         {
-          message:
-            "`underscore` is restricted from being used. Replace it with `lodash`.",
-          type: "ImportDeclaration",
+          message: '`underscore` is restricted from being used. Replace it with `lodash`.',
+          type: 'ImportDeclaration',
         },
       ],
     },
@@ -250,24 +237,23 @@ ruleTester.run("restrict-import: schema test", rule, {
       options: [
         [
           {
-            target: "underscore",
-            replacement: "lodash",
+            target: 'underscore',
+            replacement: 'lodash',
           },
           {
-            target: "lodash",
-            replacement: "lodash-es",
+            target: 'lodash',
+            replacement: 'lodash-es',
           },
-          "lodash-es",
+          'lodash-es',
         ],
       ],
       output: "import _ from 'lodash'",
       errors: [
         {
-          message:
-            "`underscore` is restricted from being used. Replace it with `lodash`.",
-          type: "ImportDeclaration",
+          message: '`underscore` is restricted from being used. Replace it with `lodash`.',
+          type: 'ImportDeclaration',
         },
       ],
     },
   ],
-});
+})

@@ -37,20 +37,20 @@ Example configuration:
 Examples of **incorrect** code for this rule with options above:
 
 ```js
-import testPackage from "test-package";
+import testPackage from 'test-package'
 
-import anotherPackage from "another-package";
+import anotherPackage from 'another-package'
 
-import withRegexSupport from "with-regex-support";
-import withSupport from "with-support";
+import withRegexSupport from 'with-regex-support'
+import withSupport from 'with-support'
 ```
 
 Examples of **correct** code for this rule with options above:
 
 ```js
-import testPackage from "replacement-package";
+import testPackage from 'replacement-package'
 
-import theOtherPackage from "the-other-package";
+import theOtherPackage from 'the-other-package'
 ```
 
 ### Options
@@ -71,7 +71,7 @@ Scheme:
 type Restriction =
   | string
   | {
-      target: string;
-      replacement?: string;
-    };
+      target: string
+      replacement?: string
+    }
 ```
