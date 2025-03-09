@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-restrict-replace-import",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "ESLint Plugin for Restricting and Replacing Import",
   "keywords": [
     "eslint",
@@ -25,7 +25,8 @@
     "lint:eslint-docs": "npm-run-all \"update:eslint-docs -- --check\"",
     "lint:js": "eslint .",
     "test": "mocha tests --recursive",
-    "update:eslint-docs": "eslint-doc-generator"
+    "update:eslint-docs": "eslint-doc-generator",
+    "release": "npm run lint && npm run test && npm publish"
   },
   "dependencies": {
     "requireindex": "^1.2.0"
