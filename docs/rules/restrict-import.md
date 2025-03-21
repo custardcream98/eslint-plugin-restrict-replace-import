@@ -129,7 +129,7 @@ import { useState } from 'successfully-replaced'
       [{
         "target": "restricted-module",
         "namedImports": ["restrictedImport", "alsoRestricted"],
-        "replacement": "replacement-module"
+        "replacement": "replacement-module" // Object is not supported yet
       }]
     ]
   }

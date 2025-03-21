@@ -372,6 +372,46 @@ ruleTester.run('restrict-import: namedImports test', rule, {
     },
 
     {
+      code: "import { restrictedImport, alsoRestricted } from 'restricted-module'",
+      errors: [
+        {
+          messageId: 'ImportedNameRestrictionWithReplacement',
+          data: {
+            importedName: 'restrictedImport',
+            name: 'restricted-module',
+            replacement: 'replacement-module-A',
+          },
+          type: 'ImportDeclaration',
+        },
+        {
+          messageId: 'ImportedNameRestrictionWithReplacement',
+          data: {
+            importedName: 'alsoRestricted',
+            name: 'restricted-module',
+            replacement: 'replacement-module-B',
+          },
+          type: 'ImportDeclaration',
+        },
+      ],
+      options: [
+        [
+          {
+            target: 'restricted-module',
+            namedImports: ['restrictedImport'],
+            replacement: 'replacement-module-A',
+          },
+          {
+            target: 'restricted-module',
+            namedImports: ['alsoRestricted'],
+            replacement: 'replacement-module-B',
+          },
+        ],
+      ],
+      output:
+        "import { restrictedImport } from 'replacement-module-A'\nimport { alsoRestricted } from 'replacement-module-B'\n",
+    },
+
+    {
       code: "import { existingImport } from 'replacement-module';\nimport { restrictedImport } from 'restricted-module';",
       errors: [
         {

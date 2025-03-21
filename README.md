@@ -126,7 +126,7 @@ You can also restrict specific named imports from a package while allowing other
         {
           "target": "restricted-module",
           "namedImports": ["restrictedImport", "alsoRestricted"],
-          "replacement": "replacement-module"
+          "replacement": "replacement-module" // Object is not supported yet
         }
       ]
     ]
