@@ -196,10 +196,12 @@ import defaultExport, { allowed } from 'restricted-module'
 
 <!-- begin auto-generated rules list -->
 
+💼 Configurations enabled in.\
+✅ Set in the `recommended` configuration.\
 🔧 Automatically fixable by the [`--fix` CLI option](https://eslint.org/docs/user-guide/command-line-interface#--fix).
 
-| Name                                             | Description                              | 🔧 |
-| :----------------------------------------------- | :--------------------------------------- | :- |
-| [restrict-import](docs/rules/restrict-import.md) | Prevent the Import of a Specific Package | 🔧 |
+| Name                                             | Description                              | 💼 | 🔧 |
+| :----------------------------------------------- | :--------------------------------------- | :- | :- |
+| [restrict-import](docs/rules/restrict-import.md) | Prevent the Import of a Specific Package | ✅  | 🔧 |
 
 <!-- end auto-generated rules list -->
