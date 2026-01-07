@@ -1,43 +1,35 @@
-'use strict'
-
 import eslint from '@eslint/js'
+import tseslint from 'typescript-eslint'
 import eslintPluginEslintPlugin from 'eslint-plugin-eslint-plugin'
-import eslintPluginNode from 'eslint-plugin-node'
-import { fixupPluginRules } from '@eslint/compat'
 import globals from 'globals'
 
-/**
- * @type {import('eslint').Linter.Config[]}
- */
-export default [
+export default tseslint.config(
   eslint.configs.recommended,
+  ...tseslint.configs.recommended,
   {
     languageOptions: {
       ecmaVersion: 2023,
-      sourceType: 'commonjs',
+      sourceType: 'module',
       globals: {
         ...globals.node,
       },
     },
-    files: ['**/*.js'],
+    files: ['src/**/*.ts', 'tests/**/*.ts'],
     rules: {
       ...eslintPluginEslintPlugin.configs.recommended.rules,
-      ...eslintPluginNode.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
     },
     plugins: {
       'eslint-plugin': eslintPluginEslintPlugin,
-      node: fixupPluginRules(eslintPluginNode),
     },
     linterOptions: {
       reportUnusedDisableDirectives: true,
     },
   },
   {
-    files: ['tests/**/*.js'],
-    languageOptions: {
-      globals: {
-        mocha: 'readonly',
-      },
-    },
-  },
-]
+    ignores: ['dist/**', 'node_modules/**', 'lib/**', 'tests/lib/**'],
+  }
+)

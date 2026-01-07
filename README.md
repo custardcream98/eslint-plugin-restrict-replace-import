@@ -20,6 +20,33 @@ npm install eslint-plugin-restrict-replace-import --save-dev
 
 ## Usage
 
+### ESLint v9+ (Flat Config)
+
+```js
+// eslint.config.js
+import restrictReplaceImport from 'eslint-plugin-restrict-replace-import'
+
+export default [
+  // Use the recommended config
+  restrictReplaceImport.flatConfigs.recommended,
+
+  // Or configure manually
+  {
+    plugins: {
+      'restrict-replace-import': restrictReplaceImport,
+    },
+    rules: {
+      'restrict-replace-import/restrict-import': [
+        'error',
+        ['restricted-package1', 'restricted-package2'],
+      ],
+    },
+  },
+]
+```
+
+### ESLint v8 (Legacy Config)
+
 Add `restrict-replace-import` to the plugins section of your `.eslintrc` configuration file. You can omit the `eslint-plugin-` prefix:
 
 ```json
@@ -37,6 +64,8 @@ Then configure the rules you want to use under the rules section.
   }
 }
 ```
+
+## Rule Options
 
 You can also specify an alternative package to import instead:
 
@@ -126,7 +155,7 @@ You can also restrict specific named imports from a package while allowing other
         {
           "target": "restricted-module",
           "namedImports": ["restrictedImport", "alsoRestricted"],
-          "replacement": "replacement-module" // Object is not supported yet
+          "replacement": "replacement-module"
         }
       ]
     ]

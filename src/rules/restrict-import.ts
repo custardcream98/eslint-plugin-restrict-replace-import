@@ -1,19 +1,49 @@
-/**
- * @fileoverview Prevent the Import of a Specific Package
- * @author shiwoo.park
- */
-'use strict'
+import type { Rule, SourceCode } from 'eslint'
+import type { Identifier, ImportDeclaration, ImportSpecifier, Literal } from 'estree'
+
+type Replacement = string | Record<string, string>
 
 /**
- * @typedef {string | {[key: string]: string;}} Replacement
- * @typedef {{replacement: Replacement | null; namedImports: string[] | null;}} ImportRestrictionOptions
+ * Get the name of an import specifier's imported binding.
+ * Handles both Identifier (e.g., `import { foo }`) and Literal (e.g., `import { "foo" as bar }`)
  */
+const getImportedName = (imported: Identifier | Literal): string => {
+  if (imported.type === 'Identifier') {
+    return imported.name
+  }
+  // For string literals in imports (e.g., import { "string-name" as alias })
+  return String(imported.value)
+}
 
-const createRestrictedPackagesMap = (options) => {
-  /**
-   * @type {Map<RegExp, ImportRestrictionOptions>}
-   */
-  const map = new Map()
+interface ImportRestrictionOptions {
+  replacement: Replacement | null
+  namedImports: string[] | null
+}
+
+interface RestrictedImportCheckResult {
+  type: 'module' | 'importedName'
+  pattern: RegExp
+  restrictedImportedName?: string
+}
+
+interface ImportRestriction {
+  importName: string
+  replacement: string | null
+  pattern: RegExp
+}
+
+interface SpecifierInfo {
+  imported: string
+  local: string
+}
+
+type QuoteStyle = '"' | "'"
+
+const createRestrictedPackagesMap = (
+  options: Array<string | { target: string; replacement?: Replacement; namedImports?: string[] }>,
+): Map<RegExp, ImportRestrictionOptions> => {
+  const map = new Map<RegExp, ImportRestrictionOptions>()
+
   options.forEach((config) => {
     if (typeof config === 'string') {
       map.set(new RegExp(`^${config}$`), {
@@ -22,20 +52,20 @@ const createRestrictedPackagesMap = (options) => {
       })
     } else {
       map.set(new RegExp(`^${config.target}$`), {
-        replacement: config.replacement || null,
-        namedImports: config.namedImports || null,
+        replacement: config.replacement ?? null,
+        namedImports: config.namedImports ?? null,
       })
     }
   })
+
   return map
 }
 
-/**
- * @param {string} importSource
- * @param {string[]} namedImports
- * @param {Map<RegExp, ImportRestrictionOptions>} restrictedPackages
- */
-const checkIsRestrictedImport = (importSource, namedImports, restrictedPackages) => {
+const checkIsRestrictedImport = (
+  importSource: string,
+  namedImports: string[],
+  restrictedPackages: Map<RegExp, ImportRestrictionOptions>,
+): RestrictedImportCheckResult | null => {
   for (const [pattern, restrictedPackageOptions] of restrictedPackages) {
     if (pattern.test(importSource)) {
       if (!restrictedPackageOptions.namedImports?.length) {
@@ -62,34 +92,32 @@ const checkIsRestrictedImport = (importSource, namedImports, restrictedPackages)
 
 /**
  * Strip the beginning and ending of RegExp pattern (e.g. ^pattern$ -> pattern)
- * @param {string} regExpPatternSource
  */
-const getPatternDisplayName = (regExpPatternSource) => regExpPatternSource.slice(1, -1)
+const getPatternDisplayName = (regExpPatternSource: string): string => regExpPatternSource.slice(1, -1)
 
-const getQuoteStyle = (target) => (target?.includes("'") ? "'" : '"')
+const getQuoteStyle = (target: string | undefined): QuoteStyle => (target?.includes("'") ? "'" : '"')
 
 /**
  * Format a list of import specifiers as a string
- * @param {Array<{imported: string, local: string}>} specifiers
- * @returns {string}
  */
-const formatSpecifiers = (specifiers) => {
+const formatSpecifiers = (specifiers: SpecifierInfo[]): string => {
   return specifiers.map((s) => (s.imported === s.local ? s.imported : `${s.imported} as ${s.local}`)).join(', ')
+}
+
+interface CreateImportTextOptions {
+  specifiers: ImportDeclaration['specifiers']
+  source: string
+  quote: QuoteStyle
+  semicolon?: string
 }
 
 /**
  * Creates the text for a new import statement
- * @param {Object} options
- * @param {Array} options.specifiers - The import specifiers
- * @param {string} options.source - The import source
- * @param {string} options.quote - The quote style
- * @param {string} options.semicolon - The semicolon (if any)
- * @returns {string}
  */
-const createImportText = ({ specifiers, source, quote, semicolon = '' }) => {
+const createImportText = ({ specifiers, source, quote, semicolon = '' }: CreateImportTextOptions): string => {
   const defaultSpecifier = specifiers.find((s) => s.type === 'ImportDefaultSpecifier')
   const namespaceSpecifier = specifiers.find((s) => s.type === 'ImportNamespaceSpecifier')
-  const namedSpecifiers = specifiers.filter((s) => s.type === 'ImportSpecifier')
+  const namedSpecifiers = specifiers.filter((s): s is ImportSpecifier => s.type === 'ImportSpecifier')
 
   if (namespaceSpecifier) {
     return `import * as ${namespaceSpecifier.local.name} from ${quote}${source}${quote}${semicolon}`
@@ -101,7 +129,10 @@ const createImportText = ({ specifiers, source, quote, semicolon = '' }) => {
     }
 
     const namedText = namedSpecifiers
-      .map((s) => (s.imported.name === s.local.name ? s.imported.name : `${s.imported.name} as ${s.local.name}`))
+      .map((s) => {
+        const importedName = getImportedName(s.imported)
+        return importedName === s.local.name ? importedName : `${importedName} as ${s.local.name}`
+      })
       .join(', ')
 
     return `import ${defaultSpecifier.local.name}, { ${namedText} } from ${quote}${source}${quote}${semicolon}`
@@ -109,7 +140,10 @@ const createImportText = ({ specifiers, source, quote, semicolon = '' }) => {
 
   if (namedSpecifiers.length > 0) {
     const namedText = namedSpecifiers
-      .map((s) => (s.imported.name === s.local.name ? s.imported.name : `${s.imported.name} as ${s.local.name}`))
+      .map((s) => {
+        const importedName = getImportedName(s.imported)
+        return importedName === s.local.name ? importedName : `${importedName} as ${s.local.name}`
+      })
       .join(', ')
 
     return `import { ${namedText} } from ${quote}${source}${quote}${semicolon}`
@@ -119,102 +153,21 @@ const createImportText = ({ specifiers, source, quote, semicolon = '' }) => {
 }
 
 /**
- * @param {import('eslint').Rule.RuleContext} context
- * @param {import('estree').ImportDeclaration} node
- * @param {string[]} restrictedNames
- * @param {string} replacement
- * @returns {(fixer: import('eslint').Rule.RuleFixer) => void}
- * @deprecated Function no longer used as each restriction is now handled individually
- */
-// eslint-disable-next-line no-unused-vars
-const createNamedImportReplacer = (context, node, restrictedNames, replacement) => {
-  return (fixer) => {
-    if (!replacement) return null
-
-    const quote = getQuoteStyle(node.source.raw)
-    const semicolon = node.source.raw.endsWith(';') || node.source.value.endsWith(';') ? ';' : ''
-    const fixes = []
-
-    // Find restricted specifiers to move
-    const restrictedSpecifiers = node.specifiers.filter(
-      (specifier) => specifier.type === 'ImportSpecifier' && restrictedNames.includes(specifier.imported.name),
-    )
-
-    if (restrictedSpecifiers.length === 0) {
-      return null
-    }
-
-    // Format the restricted specifiers for moving
-    const specifiersToMove = restrictedSpecifiers.map((specifier) => ({
-      imported: specifier.imported.name,
-      local: specifier.local.name,
-    }))
-
-    // Handle the original import
-    const remainingSpecifiers = node.specifiers.filter(
-      (specifier) => specifier.type !== 'ImportSpecifier' || !restrictedNames.includes(specifier.imported.name),
-    )
-
-    // Remove or update the original import
-    if (remainingSpecifiers.length === 0) {
-      fixes.push(fixer.remove(node))
-    } else if (remainingSpecifiers.length < node.specifiers.length) {
-      const newImportText = createImportText({
-        specifiers: remainingSpecifiers,
-        source: node.source.value,
-        quote,
-        semicolon,
-      })
-      fixes.push(fixer.replaceText(node, newImportText))
-    }
-
-    // Add imports to the replacement module
-    const { sourceCode } = context
-    const allImports = sourceCode.ast.body.filter(
-      (node) => node.type === 'ImportDeclaration' && node.source.type === 'Literal',
-    )
-
-    const existingReplacementImport = allImports.find((importNode) => importNode.source.value === replacement)
-
-    if (existingReplacementImport) {
-      fixes.push(
-        ...updateExistingImport(
-          fixer,
-          sourceCode,
-          existingReplacementImport,
-          specifiersToMove,
-          quote,
-          semicolon,
-          replacement,
-        ),
-      )
-    } else {
-      // Create a new import for the replacement
-      const newSpecifiersText = formatSpecifiers(specifiersToMove)
-      const newImport = `import { ${newSpecifiersText} } from ${quote}${replacement}${quote}${semicolon}`
-      fixes.push(fixer.insertTextBefore(node, newImport + '\n'))
-    }
-
-    return fixes
-  }
-}
-
-/**
  * Updates an existing import with new specifiers
- * @param {import('eslint').Rule.RuleFixer} fixer
- * @param {import('eslint').SourceCode} sourceCode
- * @param {import('estree').ImportDeclaration} existingImport
- * @param {Array<{imported: string, local: string}>} specifiersToAdd
- * @param {string} quote
- * @param {string} semicolon
- * @param {string} replacement
- * @returns {Array<import('eslint').Rule.Fix>}
  */
-const updateExistingImport = (fixer, sourceCode, existingImport, specifiersToAdd, quote, semicolon, replacement) => {
-  const fixes = []
+const updateExistingImport = (
+  fixer: Rule.RuleFixer,
+  sourceCode: SourceCode,
+  existingImport: ImportDeclaration,
+  specifiersToAdd: SpecifierInfo[],
+  quote: QuoteStyle,
+  semicolon: string,
+  replacement: string,
+): Rule.Fix[] => {
+  const fixes: Rule.Fix[] = []
   const existingNamedSpecifiers = existingImport.specifiers
-    .filter((s) => s.type === 'ImportSpecifier')
-    .map((s) => s.imported.name)
+    .filter((s): s is ImportSpecifier => s.type === 'ImportSpecifier')
+    .map((s) => getImportedName(s.imported))
 
   const newSpecifiersToAdd = specifiersToAdd.filter((s) => !existingNamedSpecifiers.includes(s.imported))
 
@@ -223,7 +176,7 @@ const updateExistingImport = (fixer, sourceCode, existingImport, specifiersToAdd
   }
 
   const existingText = sourceCode.getText(existingImport)
-  const namedSpecifiers = existingImport.specifiers.filter((s) => s.type === 'ImportSpecifier')
+  const namedSpecifiers = existingImport.specifiers.filter((s): s is ImportSpecifier => s.type === 'ImportSpecifier')
 
   if (namedSpecifiers.length > 0) {
     // Add new specifiers to existing named imports
@@ -249,28 +202,24 @@ const updateExistingImport = (fixer, sourceCode, existingImport, specifiersToAdd
   return fixes
 }
 
-/**
- * @param {import('estree').ImportDeclaration['source']} sourceNode
- * @param {string} replacement
- * @param {'"' | "'"} quote
- * @returns {(fixer: import('eslint').Rule.RuleFixer) => void}
- */
-const createStringReplacer = (sourceNode, replacement, quote) => {
+const createStringReplacer = (
+  sourceNode: ImportDeclaration['source'],
+  replacement: string,
+  quote: QuoteStyle,
+): ((fixer: Rule.RuleFixer) => Rule.Fix) => {
   return (fixer) => fixer.replaceText(sourceNode, `${quote}${replacement}${quote}`)
 }
 
-/**
- * @param {import('estree').ImportDeclaration['source']} sourceNode
- * @param {Replacement} replacementPatterns
- * @param {'"' | "'"} quote
- * @returns {(fixer: import('eslint').Rule.RuleFixer) => void}
- */
-const createPatternReplacer = (sourceNode, replacementPatterns, quote) => {
+const createPatternReplacer = (
+  sourceNode: ImportDeclaration['source'],
+  replacementPatterns: Replacement,
+  quote: QuoteStyle,
+): ((fixer: Rule.RuleFixer) => Rule.Fix) => {
   return (fixer) => {
-    let result = sourceNode.value
+    let result = sourceNode.value as string
 
     if (typeof replacementPatterns === 'string') {
-      return createStringReplacer(sourceNode, replacementPatterns, quote)
+      return createStringReplacer(sourceNode, replacementPatterns, quote)(fixer)
     }
 
     for (const [pattern, replacement] of Object.entries(replacementPatterns)) {
@@ -281,12 +230,10 @@ const createPatternReplacer = (sourceNode, replacementPatterns, quote) => {
   }
 }
 
-/**
- * @param {import('estree').ImportDeclaration} node
- * @param {Replacement} replacement
- * @returns {(fixer: import('eslint').Rule.RuleFixer) => void}
- */
-const createModuleReplacer = (node, replacement) => {
+const createModuleReplacer = (
+  node: ImportDeclaration,
+  replacement: Replacement | null,
+): ((fixer: Rule.RuleFixer) => Rule.Fix) | null => {
   if (!replacement) return null
 
   const quote = getQuoteStyle(node.source.raw)
@@ -298,24 +245,22 @@ const createModuleReplacer = (node, replacement) => {
   return createPatternReplacer(node.source, replacement, quote)
 }
 
-/**
- * @param {import('eslint').Rule.RuleContext} context
- * @param {import('estree').ImportDeclaration} node
- * @param {Array<{importName: string, replacement: string}>} importRestrictions
- * @returns {(fixer: import('eslint').Rule.RuleFixer) => any}
- */
-const createMultiNamedImportReplacer = (context, node, importRestrictions) => {
+const createMultiNamedImportReplacer = (
+  context: Rule.RuleContext,
+  node: ImportDeclaration,
+  importRestrictions: ImportRestriction[],
+): ((fixer: Rule.RuleFixer) => Rule.Fix[] | null) => {
   return (fixer) => {
     if (!importRestrictions.length) return null
 
     const quote = getQuoteStyle(node.source.raw)
-    const semicolon = node.source.raw.endsWith(';') || node.source.value.endsWith(';') ? ';' : ''
-    const fixes = []
+    const semicolon = node.source.raw?.endsWith(';') || (node.source.value as string).endsWith(';') ? ';' : ''
+    const fixes: Rule.Fix[] = []
 
     const allRestrictedNames = importRestrictions.map((r) => r.importName)
 
     // Group imports by replacement
-    const groupedByReplacement = importRestrictions.reduce((acc, restriction) => {
+    const groupedByReplacement = importRestrictions.reduce<Record<string, string[]>>((acc, restriction) => {
       if (!restriction.replacement) return acc
 
       if (!acc[restriction.replacement]) {
@@ -329,7 +274,9 @@ const createMultiNamedImportReplacer = (context, node, importRestrictions) => {
 
     // Find non-restricted specifiers from the original import
     const remainingSpecifiers = node.specifiers.filter(
-      (specifier) => specifier.type !== 'ImportSpecifier' || !allRestrictedNames.includes(specifier.imported.name),
+      (specifier) =>
+        specifier.type !== 'ImportSpecifier' ||
+        !allRestrictedNames.includes(getImportedName((specifier as ImportSpecifier).imported)),
     )
 
     // Update or remove the original import
@@ -338,7 +285,7 @@ const createMultiNamedImportReplacer = (context, node, importRestrictions) => {
     } else {
       const newImportText = createImportText({
         specifiers: remainingSpecifiers,
-        source: node.source.value,
+        source: node.source.value as string,
         quote,
         semicolon,
       })
@@ -346,9 +293,9 @@ const createMultiNamedImportReplacer = (context, node, importRestrictions) => {
     }
 
     // Create new imports for each replacement module
-    const { sourceCode } = context
+    const sourceCode = context.sourceCode
     const allImports = sourceCode.ast.body.filter(
-      (node) => node.type === 'ImportDeclaration' && node.source.type === 'Literal',
+      (n): n is ImportDeclaration => n.type === 'ImportDeclaration' && n.source.type === 'Literal',
     )
 
     // Process each replacement module
@@ -356,15 +303,17 @@ const createMultiNamedImportReplacer = (context, node, importRestrictions) => {
       // Find specifiers to move
       const specifiersToMove = restrictedNames
         .map((name) => {
-          const specifier = node.specifiers.find((s) => s.type === 'ImportSpecifier' && s.imported.name === name)
+          const specifier = node.specifiers.find(
+            (s): s is ImportSpecifier => s.type === 'ImportSpecifier' && getImportedName(s.imported) === name,
+          )
           return specifier
             ? {
-                imported: specifier.imported.name,
+                imported: getImportedName(specifier.imported),
                 local: specifier.local.name,
               }
             : null
         })
-        .filter(Boolean)
+        .filter((s): s is SpecifierInfo => s !== null)
 
       if (specifiersToMove.length === 0) return
 
@@ -396,8 +345,9 @@ const createMultiNamedImportReplacer = (context, node, importRestrictions) => {
   }
 }
 
-/** @type {import('eslint').Rule.RuleModule} */
-module.exports = {
+type RuleOptions = [Array<string | { target: string; replacement?: Replacement; namedImports?: string[] }>]
+
+const rule: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
@@ -416,11 +366,8 @@ module.exports = {
         "Import of '{{importedName}}' from '{{name}}' is restricted. Replace it with '{{replacement}}'.",
     },
 
-    schema: {
-      type: 'array',
-      maxLength: 1,
-      minLength: 1,
-      items: {
+    schema: [
+      {
         type: 'array',
         items: {
           oneOf: [
@@ -460,25 +407,29 @@ module.exports = {
           ],
         },
       },
-    },
+    ],
   },
 
   create(context) {
-    const restrictedPackages = createRestrictedPackagesMap(context.options[0])
+    const options = context.options as RuleOptions
+    const restrictedPackages = createRestrictedPackagesMap(options[0])
 
     return {
       ImportDeclaration(node) {
-        if (node.source.type !== 'Literal') return
+        const importNode = node as unknown as ImportDeclaration
+        if (importNode.source.type !== 'Literal') return
 
-        const importSource = node.source.value
-        const namedImports = node.specifiers
-          .filter((specifier) => specifier.type === 'ImportSpecifier')
-          .map((specifier) => specifier.imported.name)
+        const importSource = importNode.source.value as string
+        const namedImports = importNode.specifiers
+          .filter((specifier): specifier is ImportSpecifier => specifier.type === 'ImportSpecifier')
+          .map((specifier) => getImportedName(specifier.imported))
         const checkerResult = checkIsRestrictedImport(importSource, namedImports, restrictedPackages)
 
         if (!checkerResult) return
 
         const restrictedPackageOptions = restrictedPackages.get(checkerResult.pattern)
+        if (!restrictedPackageOptions) return
+
         const patternName = getPatternDisplayName(checkerResult.pattern.source)
 
         if (checkerResult.type === 'module') {
@@ -490,33 +441,29 @@ module.exports = {
                 : 'ImportRestriction',
             data: {
               name: patternName,
-              replacement: restrictedPackageOptions.replacement,
+              replacement: restrictedPackageOptions.replacement as string,
             },
-            fix: createModuleReplacer(node, restrictedPackageOptions.replacement),
+            fix: createModuleReplacer(importNode, restrictedPackageOptions.replacement),
           })
           return
         }
 
         // Find potential rules and replacement mappings for multiple restricted named imports
-
-        /**
-         * @type {{importName: string, replacement: string | null, pattern: RegExp}[]}
-         */
-        const importRestrictions = []
+        const importRestrictions: ImportRestriction[] = []
 
         // Check each named import for restrictions
         namedImports.forEach((importName) => {
-          for (const [pattern, options] of restrictedPackages.entries()) {
+          for (const [pattern, patternOptions] of restrictedPackages.entries()) {
             if (
               pattern.test(importSource) &&
-              options.namedImports &&
-              options.namedImports.includes(importName) &&
+              patternOptions.namedImports &&
+              patternOptions.namedImports.includes(importName) &&
               // TODO: handle options.replacement as an object
-              (typeof options.replacement === 'string' || options.replacement === null)
+              (typeof patternOptions.replacement === 'string' || patternOptions.replacement === null)
             ) {
               importRestrictions.push({
                 importName,
-                replacement: options.replacement,
+                replacement: patternOptions.replacement,
                 pattern,
               })
 
@@ -537,12 +484,16 @@ module.exports = {
             data: {
               importedName: restriction.importName,
               name: importSource,
-              replacement: restriction.replacement,
+              replacement: restriction.replacement ?? '',
             },
-            fix: restriction.replacement ? createMultiNamedImportReplacer(context, node, importRestrictions) : null,
+            fix: restriction.replacement
+              ? createMultiNamedImportReplacer(context, importNode, importRestrictions)
+              : null,
           })
         })
       },
     }
   },
 }
+
+export default rule
