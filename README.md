@@ -27,10 +27,6 @@ npm install eslint-plugin-restrict-replace-import --save-dev
 import restrictReplaceImport from 'eslint-plugin-restrict-replace-import'
 
 export default [
-  // Use the recommended config
-  restrictReplaceImport.flatConfigs.recommended,
-
-  // Or configure manually
   {
     plugins: {
       'restrict-replace-import': restrictReplaceImport,
@@ -51,14 +47,7 @@ Add `restrict-replace-import` to the plugins section of your `.eslintrc` configu
 
 ```json
 {
-  "plugins": ["restrict-replace-import"]
-}
-```
-
-Then configure the rules you want to use under the rules section.
-
-```json
-{
+  "plugins": ["restrict-replace-import"],
   "rules": {
     "restrict-replace-import/restrict-import": ["error", ["restricted-package1", "restricted-package2"]]
   }
@@ -108,7 +97,7 @@ You can use RegExp for package name:
 }
 ```
 
-Is it possible as well to perform multiple partial replacements by setting and Object in the `replacement` property:
+It is possible as well to perform multiple partial replacements by setting an Object in the `replacement` property:
 
 ```json
 {
@@ -196,12 +185,10 @@ import defaultExport, { allowed } from 'restricted-module'
 
 <!-- begin auto-generated rules list -->
 
-💼 Configurations enabled in.\
-✅ Set in the `recommended` configuration.\
 🔧 Automatically fixable by the [`--fix` CLI option](https://eslint.org/docs/user-guide/command-line-interface#--fix).
 
-| Name                                             | Description                              | 💼 | 🔧 |
-| :----------------------------------------------- | :--------------------------------------- | :- | :- |
-| [restrict-import](docs/rules/restrict-import.md) | Prevent the Import of a Specific Package | ✅  | 🔧 |
+| Name                                             | Description                              | 🔧 |
+| :----------------------------------------------- | :--------------------------------------- | :- |
+| [restrict-import](docs/rules/restrict-import.md) | Prevent the Import of a Specific Package | 🔧 |
 
 <!-- end auto-generated rules list -->
